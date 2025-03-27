@@ -23,14 +23,14 @@ namespace OnlineRestaurantAPI.Services
             var smtpPassword = _configuration["EmailSettings:SmtpPassword"];
             var senderEmail = _configuration["EmailSettings:SenderEmail"];
 
-
             if (string.IsNullOrEmpty(smtpPortString) || !int.TryParse(smtpPortString, out int smtpPort))
             {
                 throw new InvalidOperationException("SMTP port is missing or invalid.");
             }
 
-
             if (string.IsNullOrEmpty(smtpServer) ||
+                string.IsNullOrEmpty(smtpUsername) ||
+                string.IsNullOrEmpty(smtpPassword) ||
                 string.IsNullOrEmpty(senderEmail))
             {
                 throw new InvalidOperationException("One or more required email configuration values are missing.");
@@ -39,9 +39,9 @@ namespace OnlineRestaurantAPI.Services
             using (var client = new SmtpClient(smtpServer))
             {
                 client.Port = smtpPort;
-                client.UseDefaultCredentials = false; 
+                client.UseDefaultCredentials = false;
                 client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
-                client.EnableSsl = false; 
+                client.EnableSsl = true;
 
                 var mailMessage = new MailMessage
                 {
@@ -59,8 +59,7 @@ namespace OnlineRestaurantAPI.Services
                 }
                 catch (Exception ex)
                 {
-                    
-                    throw new InvalidOperationException("Failed to send email", ex);
+                    throw new Exception($"Failed to send email: {ex.Message}");
                 }
             }
         }

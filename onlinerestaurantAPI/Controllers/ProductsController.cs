@@ -19,28 +19,66 @@ namespace OnlineRestaurantAPI.Controllers
             _context = context;
         }
 
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+            [FromQuery] CategoryType? category,
+            [FromQuery] int? minSpiciness,
+            [FromQuery] int? maxSpiciness,
+            [FromQuery] bool? containsNuts,
+            [FromQuery] bool? isVegetarian)
         {
-            var products = await _context.Products.ToListAsync();
-            return Ok(products);
+            var query = _context.Products
+                .Include(p => p.Category)
+                .AsQueryable();
+
+            if (category.HasValue)
+            {
+                query = query.Where(p => p.Category.Name == category.Value);
+            }
+
+            if (minSpiciness.HasValue)
+            {
+                query = query.Where(p => p.Spiciness >= minSpiciness.Value);
+            }
+
+            if (maxSpiciness.HasValue)
+            {
+                query = query.Where(p => p.Spiciness <= maxSpiciness.Value);
+            }
+
+            if (containsNuts.HasValue)
+            {
+                query = query.Where(p => p.ContainsNuts == containsNuts.Value);
+            }
+
+            if (isVegetarian.HasValue)
+            {
+                query = query.Where(p => p.IsVegetarian == isVegetarian.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
-
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProductById(int id)
+        public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
-                return NotFound("Product not found.");
+                return NotFound();
             }
 
-            return Ok(product);
+            return product;
         }
 
+        [HttpGet("categories")]
+        public ActionResult<IEnumerable<CategoryType>> GetCategories()
+        {
+            return Enum.GetValues(typeof(CategoryType)).Cast<CategoryType>().ToList();
+        }
 
         [HttpPost]
         public async Task<ActionResult<Product>> AddProduct([FromBody] Product product)
@@ -53,9 +91,8 @@ namespace OnlineRestaurantAPI.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
-
 
         [HttpPut("{id}")]
         public async Task<ActionResult<Product>> UpdateProduct(int id, [FromBody] Product product)
@@ -84,7 +121,6 @@ namespace OnlineRestaurantAPI.Controllers
             return NoContent(); 
         }
 
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
@@ -98,30 +134,6 @@ namespace OnlineRestaurantAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent(); 
-        }
-
-        
-        [HttpGet("filtered")]
-        public async Task<ActionResult<List<Product>>> GetFilteredProducts(
-            [FromQuery] bool? vegeterian,
-            [FromQuery] bool? nuts,
-            [FromQuery] int? spiciness,
-            [FromQuery] int? categoryId)
-        {
-            var query = _context.Products.AsQueryable();
-
-            if (vegeterian.HasValue)
-                query = query.Where(p => p.Vegeterian == vegeterian.Value);
-            if (nuts.HasValue)
-                query = query.Where(p => p.Nuts == nuts.Value);
-            if (spiciness.HasValue)
-                query = query.Where(p => p.Spiciness == spiciness.Value);
-            if (categoryId.HasValue)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-
-            var products = await query.ToListAsync();
-
-            return Ok(products);
         }
     }
 }
