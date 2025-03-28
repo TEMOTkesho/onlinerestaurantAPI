@@ -5,6 +5,7 @@ using OnlineRestaurantAPI.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace OnlineRestaurantAPI.Controllers
 {
@@ -20,7 +21,7 @@ namespace OnlineRestaurantAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+        public async Task<ActionResult<IEnumerable<object>>> GetProducts(
             [FromQuery] CategoryType? category,
             [FromQuery] int? minSpiciness,
             [FromQuery] int? maxSpiciness,
@@ -56,7 +57,24 @@ namespace OnlineRestaurantAPI.Controllers
                 query = query.Where(p => p.IsVegetarian == isVegetarian.Value);
             }
 
-            return await query.ToListAsync();
+            var products = await query.Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Spiciness,
+                p.ContainsNuts,
+                p.IsVegetarian,
+                p.Price,
+                p.ImageUrl,
+                p.CategoryId,
+                Category = new
+                {
+                    p.Category.Id,
+                    p.Category.Name
+                }
+            }).ToListAsync();
+
+            return Ok(products);
         }
 
         [HttpGet("{id}")]

@@ -17,12 +17,12 @@ namespace OnlineRestaurantAPI.Data
         {
             base.OnModelCreating(builder);
 
-            // Configure decimal precision for Price
+           
             builder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
 
-            // Seed categories
+           
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = CategoryType.Salads },
                 new Category { Id = 2, Name = CategoryType.Soups },
@@ -34,7 +34,7 @@ namespace OnlineRestaurantAPI.Data
                 new Category { Id = 8, Name = CategoryType.OnTheSide }
             );
 
-            // Seed sample products
+           
             builder.Entity<Product>().HasData(
                 new Product
                 {

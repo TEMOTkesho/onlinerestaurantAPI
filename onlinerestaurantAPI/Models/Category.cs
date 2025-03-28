@@ -1,4 +1,6 @@
-﻿namespace OnlineRestaurantAPI.Models
+﻿using System.Text.Json.Serialization;
+
+namespace OnlineRestaurantAPI.Models
 {
     public enum CategoryType
     {
@@ -16,6 +18,8 @@
     {
         public int Id { get; set; }
         public CategoryType Name { get; set; }
+        
+        [JsonIgnore]
         public List<Product>? Products { get; set; }
     }
 }
