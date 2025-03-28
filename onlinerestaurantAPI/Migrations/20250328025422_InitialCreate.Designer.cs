@@ -12,7 +12,7 @@ using OnlineRestaurantAPI.Data;
 namespace OnlineRestaurantAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250328010454_InitialCreate")]
+    [Migration("20250328025422_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
