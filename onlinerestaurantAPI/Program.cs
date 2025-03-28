@@ -48,7 +48,7 @@ var logger = loggerFactory.CreateLogger<Program>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Online Restaurant API", Version = "v1" });
-    
+
 
     var securityScheme = new OpenApiSecurityScheme
     {
@@ -91,13 +91,13 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,  
-        ValidateAudience = false,  
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not found in configuration")))
     };
-    
+
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -119,14 +119,14 @@ builder.Services.AddAuthentication(options =>
         },
         OnChallenge = async context =>
         {
-            
+
             context.HandleResponse();
-            
-           
+
+
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
-            var result = JsonSerializer.Serialize(new 
-            { 
+            var result = JsonSerializer.Serialize(new
+            {
                 status = 401,
                 message = "Unauthorized. Please provide a valid JWT token.",
                 error = context.Error ?? "Invalid or missing token",
@@ -142,7 +142,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.SignIn.RequireConfirmedEmail = false;
@@ -167,8 +167,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    
-    
+
+
     options.Events.OnRedirectToLogin = context =>
     {
         context.Response.StatusCode = 401;
@@ -223,15 +223,15 @@ app.Use(async (context, next) =>
     var endpoint = context.GetEndpoint();
     logger.LogInformation($"Request: {context.Request.Method} {context.Request.Path}");
     logger.LogInformation($"Endpoint: {endpoint?.DisplayName ?? "null"}");
-    
-  
+
+
     var authHeader = context.Request.Headers["Authorization"].ToString();
     logger.LogInformation($"Authorization header: {(string.IsNullOrEmpty(authHeader) ? "not present" : "present")}");
     if (!string.IsNullOrEmpty(authHeader))
     {
         logger.LogInformation($"Authorization header starts with: {authHeader.Substring(0, Math.Min(20, authHeader.Length))}...");
     }
-    
+
     await next();
 });
 
@@ -264,13 +264,13 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         logger.LogError(ex, "An unhandled exception occurred");
-        
+
         if (!context.Response.HasStarted)
         {
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new 
-            { 
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            {
                 error = "An internal server error occurred",
                 message = app.Environment.IsDevelopment() ? ex.Message : "Please try again later"
             }));
