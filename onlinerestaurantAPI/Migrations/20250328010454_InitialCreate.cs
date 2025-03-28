@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace OnlineRestaurantAPI.Migrations
 {
     /// <inheritdoc />
@@ -56,7 +58,7 @@ namespace OnlineRestaurantAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -175,12 +177,12 @@ namespace OnlineRestaurantAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Nuts = table.Column<bool>(type: "bit", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Vegeterian = table.Column<bool>(type: "bit", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Spiciness = table.Column<int>(type: "int", nullable: false),
+                    ContainsNuts = table.Column<bool>(type: "bit", nullable: false),
+                    IsVegetarian = table.Column<bool>(type: "bit", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -200,6 +202,7 @@ namespace OnlineRestaurantAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false)
                 },
@@ -207,11 +210,43 @@ namespace OnlineRestaurantAPI.Migrations
                 {
                     table.PrimaryKey("PK_BasketItems", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_BasketItems_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_BasketItems_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, 0 },
+                    { 2, 1 },
+                    { 3, 2 },
+                    { 4, 3 },
+                    { 5, 4 },
+                    { 6, 5 },
+                    { 7, 6 },
+                    { 8, 7 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Products",
+                columns: new[] { "Id", "CategoryId", "ContainsNuts", "ImageUrl", "IsVegetarian", "Name", "Price", "Spiciness" },
+                values: new object[,]
+                {
+                    { 1, 1, false, "https://example.com/caesar-salad.jpg", true, "Caesar Salad", 12.99m, 0 },
+                    { 2, 2, false, "https://example.com/hot-sour-soup.jpg", false, "Hot and Sour Soup", 8.99m, 2 },
+                    { 3, 3, true, "https://example.com/kung-pao-chicken.jpg", false, "Kung Pao Chicken", 15.99m, 3 },
+                    { 4, 4, false, "https://example.com/beef-stir-fry.jpg", false, "Beef Stir Fry", 16.99m, 1 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -257,6 +292,11 @@ namespace OnlineRestaurantAPI.Migrations
                 name: "IX_BasketItems_ProductId",
                 table: "BasketItems",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BasketItems_UserId",
+                table: "BasketItems",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",

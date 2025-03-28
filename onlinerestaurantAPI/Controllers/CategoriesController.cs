@@ -1,44 +1,90 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurantAPI.Models;
-using System.Net.Http;
-using System.Text.Json;
+using OnlineRestaurantAPI.Data;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
-[ApiController]
-[Route("api/[controller]")]
-public class CategoriesController : ControllerBase
+namespace OnlineRestaurantAPI.Controllers
 {
-    private readonly HttpClient _httpClient;
-    private const string BASE_URL = "https://localhost:7017";
-
-    public CategoriesController(HttpClient httpClient)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CategoriesController : ControllerBase
     {
-        _httpClient = httpClient;
-    }
+        private readonly ApplicationDbContext _context;
 
-    [HttpGet]
-    public async Task<ActionResult<List<Category>>> GetAllCategories()
-    {
+        public CategoriesController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-        var response = await _httpClient.GetStringAsync($"{BASE_URL}/api/Categories/GetAll");
-        var categories = JsonSerializer.Deserialize<List<Category>>(response,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Category>>> GetAllCategories()
+        {
+            return await _context.Categories.ToListAsync();
+        }
 
-        return Ok(categories);
-    }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Category>> GetCategoryById(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
 
+            if (category == null)
+            {
+                return NotFound();
+            }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Category>> GetCategoryById(int id)
-    {
+            return category;
+        }
 
-        var response = await _httpClient.GetStringAsync($"{BASE_URL}/api/Categories/GetCategory/{id}");
-        var category = JsonSerializer.Deserialize<Category>(response,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        [HttpPost]
+        public async Task<ActionResult<Category>> CreateCategory([FromBody] Category category)
+        {
+            if (category == null)
+            {
+                return BadRequest("Invalid category data.");
+            }
 
-        if (category == null)
-            return NotFound();
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
 
-        return Ok(category);
+            return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, category);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] Category category)
+        {
+            if (id != category.Id)
+            {
+                return BadRequest("Category ID mismatch.");
+            }
+
+            var existingCategory = await _context.Categories.FindAsync(id);
+            if (existingCategory == null)
+            {
+                return NotFound("Category not found.");
+            }
+
+            existingCategory.Name = category.Name;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound("Category not found.");
+            }
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }

@@ -110,15 +110,15 @@ namespace OnlineRestaurantAPI.Controllers
 
             existingProduct.Name = product.Name;
             existingProduct.Price = product.Price;
-            existingProduct.Nuts = product.Nuts;
-            existingProduct.Image = product.Image;
-            existingProduct.Vegeterian = product.Vegeterian;
+            existingProduct.ContainsNuts = product.ContainsNuts;
+            existingProduct.ImageUrl = product.ImageUrl;
+            existingProduct.IsVegetarian = product.IsVegetarian;
             existingProduct.Spiciness = product.Spiciness;
             existingProduct.CategoryId = product.CategoryId;
 
             await _context.SaveChangesAsync();
 
-            return NoContent(); 
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -133,7 +133,7 @@ namespace OnlineRestaurantAPI.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            return NoContent(); 
+            return NoContent();
         }
     }
 }

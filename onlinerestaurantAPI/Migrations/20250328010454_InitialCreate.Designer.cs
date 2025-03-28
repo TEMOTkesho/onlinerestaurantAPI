@@ -12,7 +12,7 @@ using OnlineRestaurantAPI.Data;
 namespace OnlineRestaurantAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250325135250_InitialCreate")]
+    [Migration("20250328010454_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace OnlineRestaurantAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -237,9 +237,15 @@ namespace OnlineRestaurantAPI.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("BasketItems");
                 });
@@ -252,13 +258,54 @@ namespace OnlineRestaurantAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Name")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = 3
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = 4
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = 5
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = 6
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = 7
+                        });
                 });
 
             modelBuilder.Entity("OnlineRestaurantAPI.Models.Product", b =>
@@ -272,16 +319,20 @@ namespace OnlineRestaurantAPI.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
+                    b.Property<bool>("ContainsNuts")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsVegetarian")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Nuts")
-                        .HasColumnType("bit");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -289,14 +340,57 @@ namespace OnlineRestaurantAPI.Migrations
                     b.Property<int>("Spiciness")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Vegeterian")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryId = 1,
+                            ContainsNuts = false,
+                            ImageUrl = "https://example.com/caesar-salad.jpg",
+                            IsVegetarian = true,
+                            Name = "Caesar Salad",
+                            Price = 12.99m,
+                            Spiciness = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryId = 2,
+                            ContainsNuts = false,
+                            ImageUrl = "https://example.com/hot-sour-soup.jpg",
+                            IsVegetarian = false,
+                            Name = "Hot and Sour Soup",
+                            Price = 8.99m,
+                            Spiciness = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryId = 3,
+                            ContainsNuts = true,
+                            ImageUrl = "https://example.com/kung-pao-chicken.jpg",
+                            IsVegetarian = false,
+                            Name = "Kung Pao Chicken",
+                            Price = 15.99m,
+                            Spiciness = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryId = 4,
+                            ContainsNuts = false,
+                            ImageUrl = "https://example.com/beef-stir-fry.jpg",
+                            IsVegetarian = false,
+                            Name = "Beef Stir Fry",
+                            Price = 16.99m,
+                            Spiciness = 1
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -358,16 +452,26 @@ namespace OnlineRestaurantAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OnlineRestaurantAPI.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OnlineRestaurantAPI.Models.Product", b =>
                 {
-                    b.HasOne("OnlineRestaurantAPI.Models.Category", null)
+                    b.HasOne("OnlineRestaurantAPI.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("OnlineRestaurantAPI.Models.Category", b =>
